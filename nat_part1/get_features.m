@@ -23,6 +23,11 @@ function [features] = get_features(clean_data,fs)
 means=mean(clean_data,1)';
 num_ch=size(clean_data,2);
 freqBands=reshape((0:15:195),2,7)';
+% freqBands=[5 15;
+%            20 25;
+%            75 115;
+%            125 160;
+%            160 175];
 p=zeros(num_ch,length(freqBands));
 
 for i=1:length(freqBands)

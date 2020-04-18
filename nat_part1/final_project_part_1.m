@@ -13,52 +13,62 @@
 
 
 %% load in Data (0 points)
-load('final_proj_part1_data.mat');
-
+% load('final_proj_part1_data.mat');
+load('raw_training_data.mat')
+load('leaderboard_data.mat');
 %% Extract dataglove and ECoG data 
 % Dataglove should be (samples x 5) array 
 % ECoG should be (samples x channels) array
 
 % Split data into a train and test set (use at least 50% for training)
 
-train=cell(1,3);
-train2=cell(1,3);
-test=cell(1,3);
-test2=cell(1,3);
-
-
-for i=1:3
-    train{i}=train_ecog{i}(1:length(train_ecog{1})*.7,:);
-    train2{i}=train_dg{i}(1:length(train_ecog{1})*.7,:);
-    test{i}=train_ecog{i}(length(train_ecog{1})*.7+1:end,:);
-    test2{i}=train_dg{i}(length(train_ecog{1})*.7+1:end,:);
-end
+% train=cell(1,3);
+% train2=cell(1,3);
+% test=cell(1,3);
+% test2=cell(1,3);
+% 
+% 
+% for i=1:3
+%     train{i}=train_ecog{i}(1:length(train_ecog{1})*.7,:);
+%     train2{i}=train_dg{i}(1:length(train_ecog{1})*.7,:);
+%     test{i}=train_ecog{i}(length(train_ecog{1})*.7+1:end,:);
+%     test2{i}=train_dg{i}(length(train_ecog{1})*.7+1:end,:);
+% end
 %% Get Features
 
 fs=1000; 
 window_length=0.1; 
 window_overlap=0.05;
-feats=cell(1,3);
-test_feats=cell(1,3);
-
+% feats=cell(1,3);
+% test_feats=cell(1,3);
+all_feats=cell(1,3);
+alltest_feats=cell(1,3);
 fprintf('getting feats \n')
 for i=1:3
     fprintf('pt %i \n',i)
-    feats{i}=getWindowedFeats(train{i}, fs, window_length, window_overlap);
-    test_feats{i}=getWindowedFeats(test{i}, fs, window_length, window_overlap);
+%     feats{i}=getWindowedFeats(train{i}, fs, window_length, window_overlap);
+%     test_feats{i}=getWindowedFeats(test{i}, fs, window_length, window_overlap);
+    all_feats{i}=getWindowedFeats(train_ecog{i}, fs, window_length, window_overlap);
+    alltest_feats{i}=getWindowedFeats(leaderboard_ecog{i}, fs, window_length, window_overlap);
 end
 
 
 %% Create R matrix
-R=cell(1,3);
-test_R=cell(1,3);
+% R=cell(1,3);
+% test_R=cell(1,3);
+
+all_R=cell(1,3);
+alltest_R=cell(1,3);
+
 N_winds=3;
 fprintf('creating R matrix \n')
 
 for i=1:3
     fprintf('pt %i \n',i)
-    [R{i},zstats]=create_R_matrix(feats{i},N_winds,NaN, true);
-    [test_R{i},~]=create_R_matrix(test_feats{i},N_winds, zstats, true);
+%     [R{i},zstats]=create_R_matrix(feats{i},N_winds,NaN, true);
+%     [test_R{i},~]=create_R_matrix(test_feats{i},N_winds, zstats, true);
+    [all_R{i},zstats]=create_R_matrix(all_feats{i},N_winds,NaN, true);
+    [alltest_R{i},~]=create_R_matrix(alltest_feats{i},N_winds, zstats, true);
 end
 %% Train classifiers (8 points)
 
@@ -70,8 +80,8 @@ end
 f=cell(1,3);
 Y=cell(1,3);
 for i=1:3
-    Y{i}=downsample(train2{i},length(train2{i})/(length(R{i})+1));
-    f{i}=(R{i}' * R{i}) \ R{i}'*Y{i}(2:end,:);
+    Y{i}=downsample(train_dg{i},length(train_dg{i})/(length(all_R{i})+1));
+    f{i}=(all_R{i}' * all_R{i}) \ all_R{i}'*Y{i}(2:end,:);
 end
 
 % Try at least 1 other type of machine learning algorithm, you may choose
@@ -106,28 +116,29 @@ end
 % finger separately. Hint: You will want to use zohinterp to ensure both 
 % vectors are the same length.
 
-Ypred_test=cell(1,3);
-rf_test=cell(3,4);
+predicted_dg=cell(3,1);
+% rf_test=cell(3,4);
 
 displ=(window_length-window_overlap)*fs;
 
 for i=1:3
-    Ypred_test{i}=test_R{i}*f{i}(:,[1 2 3 5]);
-    Ypred_test{i}=zointerp(Ypred_test{i},displ,length(test{i}));
-    for j=1:4
-        rf_test{i,j}=zointerp(predict(rf_models{i,fings(j)},test_R{i}),...
-            displ,length(test{i}));
-    end
+    predicted_dg{i}=alltest_R{i}*f{i};
+    predicted_dg{i}=zointerp(predicted_dg{i},displ,length(leaderboard_ecog{i}));
+%     for j=1:4
+%         rf_test{i,j}=zointerp(predict(rf_models{i,fings(j)},test_R{i}),...
+%             displ,length(test{i}));
+%     end
 end
 
+save('checkpoint1.mat','predicted_dg');
 %% Plotting Patient 1 Predictions Optimal Linear Decoder
 figure
 for i=1:4
     subplot(2,2,i)
     plot(Ypred_test{1}(:,i),'b')
-    hold on
-    plot(test2{1}(:,i),'r')
-    legend('predicted','actual')
+%     hold on
+%     plot(test2{1}(:,i),'r')
+%     legend('predicted','actual')
     xlabel('Samples')
     ylabel('Finger Angle')
     hold off

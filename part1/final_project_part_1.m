@@ -132,7 +132,7 @@ for i = 1:3
     end
     fprintf(1, '\n');
 end
-
+%%
 % Test svm
 fprintf(1, 'REGRESSION SVM:\n');
 corr_svm = zeros(3,5);
