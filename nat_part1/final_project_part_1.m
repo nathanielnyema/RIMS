@@ -22,18 +22,18 @@ load('leaderboard_data.mat');
 
 % Split data into a train and test set (use at least 50% for training)
 
-% train=cell(1,3);
-% train2=cell(1,3);
-% test=cell(1,3);
-% test2=cell(1,3);
-% 
-% 
-% for i=1:3
-%     train{i}=train_ecog{i}(1:length(train_ecog{1})*.7,:);
-%     train2{i}=train_dg{i}(1:length(train_ecog{1})*.7,:);
-%     test{i}=train_ecog{i}(length(train_ecog{1})*.7+1:end,:);
-%     test2{i}=train_dg{i}(length(train_ecog{1})*.7+1:end,:);
-% end
+train=cell(1,3);
+train2=cell(1,3);
+test=cell(1,3);
+test2=cell(1,3);
+
+
+for i=1:3
+    train{i}=train_ecog{i}(1:length(train_ecog{1})*.7,:);
+    train2{i}=train_dg{i}(1:length(train_ecog{1})*.7,:);
+    test{i}=train_ecog{i}(length(train_ecog{1})*.7+1:end,:);
+    test2{i}=train_dg{i}(length(train_ecog{1})*.7+1:end,:);
+end
 %% Get Features
 
 fs=1000; 
@@ -66,27 +66,55 @@ fprintf('creating R matrix \n')
 for i=1:3
     fprintf('pt %i \n',i)
 %     [R{i},zstats]=create_R_matrix(feats{i},N_winds,NaN, true);
+%     R{i}=R{i}(1:end-1,:);
 %     [test_R{i},~]=create_R_matrix(test_feats{i},N_winds, zstats, true);
+%     test_R{i}=test_R{i}(1:end-1,:);
     [all_R{i},zstats]=create_R_matrix(all_feats{i},N_winds,NaN, true);
+    all_R{i}=all_R{i}(1:end-1,:);
     [alltest_R{i},~]=create_R_matrix(alltest_feats{i},N_winds, zstats, true);
+    alltest_R{i}=alltest_R{i}(1:end-1,:);
 end
-%% Train classifiers (8 points)
 
 
-% Classifier 1: Get angle predictions using optimal linear decoding. That is, 
-% calculate the linear filter (i.e. the weights matrix) as defined by 
-% Equation 1 for all 5 finger angles.
-
+%% Train classifiers
+% as a first pass try the optimal linear decoder
 f=cell(1,3);
 Y=cell(1,3);
+
+% f2=cell(1,3);
+% Y2=cell(1,3);
 for i=1:3
-    Y{i}=downsample(train_dg{i},length(train_dg{i})/(length(all_R{i})+1));
-    f{i}=(all_R{i}' * all_R{i}) \ all_R{i}'*Y{i}(2:end,:);
+%     Y{i}=downsample(train2{i},length(train2{i})/(size(R{i},1)+2));
+%     f{i}=(R{i}' * R{i}) \ R{i}'*Y{i}(3:end,:);
+    
+    Y2{i}=downsample(train_dg{i},round(length(train_dg{i})/(size(all_R{i},1)+1)));
+    f2{i}=(all_R{i}' * all_R{i}) \ all_R{i}'*Y2{i}(3:end,:);
 end
 
-% Try at least 1 other type of machine learning algorithm, you may choose
-% to loop through the fingers and train a separate classifier for angles 
-% corresponding to each finger
+[~,df]=lowpass(Y2{1},40,1e3);
+
+%%
+figure
+plot(filtfilt(df,test_R{2}*f{2}(:,2)))
+hold on
+% plot(Y{1}(2:end,1))
+plot(downsample(test2{2}(:,2),round(length(test2{2})/(size(test_R{2},1)+1))))
+hold off
+%%
+figure
+plot(filtfilt(df,R{2}*f{2}(:,2)))
+hold on
+% plot(Y{1}(2:end,1))
+% plot(downsample(train2{2}(:,2),length(train2{2})/(size(R{2},1)+1)))
+% hold off
+%%
+% figure
+% d1=R{1}*f{1}(:,1);
+% len=length(d1);
+% p=fft(R{1}*f{1}(:,1));
+% p=abs(p(1:len/2+1)/len);
+% fr=fs*(0:len/2)/len;
+% plot(fr,p)
 
 %% Try a random forest
 if isfile('random_forest.mat') && ~exist('rf_models')
@@ -118,11 +146,15 @@ end
 
 predicted_dg=cell(3,1);
 % rf_test=cell(3,4);
+Ypred_test=cell(3,1);
 
 displ=(window_length-window_overlap)*fs;
 
 for i=1:3
-    predicted_dg{i}=alltest_R{i}*f{i};
+%     Ypred_test{i}=filtfilt(df,test_R{i}*f{i});
+%     Ypred_test{i}=zointerp(Ypred_test{i},displ,length(test2{i}));
+    
+    predicted_dg{i}=alltest_R{i}*f2{i};
     predicted_dg{i}=zointerp(predicted_dg{i},displ,length(leaderboard_ecog{i}));
 %     for j=1:4
 %         rf_test{i,j}=zointerp(predict(rf_models{i,fings(j)},test_R{i}),...
@@ -130,12 +162,12 @@ for i=1:3
 %     end
 end
 
-save('checkpoint1.mat','predicted_dg');
+save('checkpoint2.mat','predicted_dg');
 %% Plotting Patient 1 Predictions Optimal Linear Decoder
 figure
 for i=1:4
     subplot(2,2,i)
-    plot(Ypred_test{1}(:,i),'b')
+    plot(predicted_dg{1}(:,i),'b')
 %     hold on
 %     plot(test2{1}(:,i),'r')
 %     legend('predicted','actual')
@@ -164,10 +196,11 @@ end
 
 c=zeros(3,4);
 c2=zeros(3,4);
+fings=[1 2 3 5];
 for i=1:3
     for j=1:4
         c(i,j)=corr(Ypred_test{i}(:,j),test2{i}(:,fings(j)));
-        c2(i,j)=corr(rf_test{i,j},test2{i}(:,fings(j)));
+%         c2(i,j)=corr(rf_test{i,j},test2{i}(:,fings(j)));
     end
 end
 

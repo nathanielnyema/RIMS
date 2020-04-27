@@ -15,7 +15,9 @@ function clean_data = filter_data_release(raw_eeg)
     % Output:   clean_data (samples x channels)
     % 
 %% Your code here (2 points) 
+    %CAR montage
+    car=raw_eeg-mean(raw_eeg,2);
     fs=1000;
     b=fir1(100,(2/fs)*[0.15 200]);
-    clean_data=filtfilt(b,1,raw_eeg);
+    clean_data=filtfilt(b,1,car);
 end

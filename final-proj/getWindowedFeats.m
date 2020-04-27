@@ -1,4 +1,4 @@
-function [all_feats]=getWindowedFeats(raw_data, fs, window_length, window_overlap)
+function [all_feats]=getWindowedFeats(raw_data, fs, window_length, window_overlap, channel_feats, cross_chan)
     %
     % getWindowedFeats_release.m
     %
@@ -20,11 +20,13 @@ function [all_feats]=getWindowedFeats(raw_data, fs, window_length, window_overla
     %           fs:             The raw sampling frequency
     %           window_length:  The length of window
     %           window_overlap: The overlap in window
+    %           channel_feats:  Array of features to calculate for each
+    %                           channel
+    %           general_feats:  Array of 
     %
-    % Output:   all_feats:      All calculated features
+    % Output:   feat_matrix:      All calculated features
     %
-%% Your code here (3 points)
-
+%%
 % First, filter the raw data
 data=filter_data(raw_data);
 
@@ -32,14 +34,13 @@ data=filter_data(raw_data);
 displ=(window_length-window_overlap)*fs;
 M = 1 + floor((length(data)-window_length*fs)/displ); 
 window=1:window_length*fs;
-numFeats=8;
-all_feats=zeros(M,size(data,2)*numFeats);
+all_feats=cell(M,1);
 
 for i=1:M
     % Within loop calculate feature for each segment (call get_features)
-    all_feats(i,:)=get_features(data(window,:),fs);
+    all_feats{i}=get_features(data(window,:),fs,channel_feats,cross_chan);
     window=window+displ;
 end
 % Finally, return feature matrix
-
+all_feats=cell2mat(all_feats);
 end

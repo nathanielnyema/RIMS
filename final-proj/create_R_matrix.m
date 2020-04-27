@@ -6,6 +6,8 @@ function [R, zstats]=create_R_matrix(features, N_wind,zstats,z)
     %
     % Input:    features:   (samples x (channels*features))
     %           N_wind:     Number of windows to use
+    %           zstats: struct with stats for zscoring
+    %           z: bool indicating whether or not to zscore
     %
     % Output:   R:          (samples x (N_wind*channels*features))
     % 
