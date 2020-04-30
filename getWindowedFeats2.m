@@ -1,5 +1,5 @@
-function [all_feats,timestamps]=getWindowedFeats(raw_data, fs, window_length, window_overlap)
-    % getWindowedFeats.m
+function [all_feats,timestamps]=getWindowedFeats2(raw_data, fs, window_length, window_overlap)
+    % getWindowedFeats2.m
     %
     % Description:  This function processes data through the steps of
     %               filtering, feature calculation, creation of R matrix
@@ -13,14 +13,13 @@ function [all_feats,timestamps]=getWindowedFeats(raw_data, fs, window_length, wi
     % Output:   all_feats:      All calculated features
     %           timestamps:     indices marking the end of each window
     %
-W = round(fs * window_length); % window length in samples
-D = round(fs * (window_length - window_overlap)); % displacement in samples
-
-% First, filter the raw data
+% Filter the raw data
 data_filt = filter_data(raw_data, fs);
 
 % Compute timestamps
 [n_raw, m_raw] = size(data_filt);
+W = round(fs * window_length); % window length in samples
+D = round(fs * (window_length - window_overlap)); % displacement in samples
 n_windows = 1 + floor((n_raw - W) / D);
 timestamps = (W + (0:n_windows-1) * (D))';
 
