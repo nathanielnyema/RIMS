@@ -8,15 +8,21 @@ function features = get_bandpowers(Pxx, F, bands, do_pca)
 %
 % Output:   features:   [windows x (features*channels)]
 
-%% Your code here (8 points)
-if ~exist('bands', 'var')
-    delta  = [1 5];
-    theta  = [5 10];
-    alpha  = [10 15];
-    beta   = [15 30];
-    gamma  = [30 70];
-    hgamma = [70 200];
-    bands = [delta; theta; alpha; beta; gamma; hgamma];
+if ~exist('bands', 'var') || isempty(bands)
+%     delta  = [1 5];
+%     theta  = [5 10];
+%     alpha  = [10 15];
+%     beta   = [15 30];
+%     gamma  = [30 70];
+%     hgamma = [70 200];
+%     bands = [delta; theta; alpha; beta; gamma; hgamma];
+    bands = [
+        5   15;
+        20  25;
+        75  115;
+        125 160;
+        160 175;
+    ];
 end
 if ~exist('do_pca', 'var')
     do_pca = false;
@@ -37,7 +43,7 @@ end
 if do_pca
     feat_pca = cell(n_win,1);
     for i = 1:n_win
-        [~,feat_pca{i}] = pca(squeeze(feat_matrix(i,:,:));
+        [~,feat_pca{i}] = pca(squeeze(feat_matrix(i,:,:)));
     end
     n_comp = size(feat_pca{1}, 2);
     features = reshape(cell2mat(feat_pca), [n_win n_ch n_comp]);

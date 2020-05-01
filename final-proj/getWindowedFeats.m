@@ -43,7 +43,8 @@ end
 f1 = get_features(windowed_data, fs);
 
 % Time-frequency features
-f2 = log(get_bandpowers(Pxx, F));
+f2 = get_bandpowers(Pxx, F);
+f3 = get_bandpowers(Pxx, F, [], true); % pca of bandpower
 
 % Combine features
 all_feats = [f1, f2];

@@ -20,14 +20,8 @@ feat_funcs.LLFn = @(x) sum(abs(diff(x)), 1);
 feat_funcs.mean = @(x) mean(x,1);
 feat_funcs.kurt= @(x) kurtosis(x);
 feat_funcs.energy = @(x) sum(x .^ 2,1);
-% feat_funcs.bandpow=@bandpow;
+% feat_funcs.bandpow=@bandpow; % moved to get_bandpowers()
 % feat_funcs.pcbandpow=@pcbandpow;
-% feat_funcs.pdelta = @(x) bandpower(x, fs, [1 4])';
-% feat_funcs.ptheta = @(x) bandpower(x, fs, [4 8])';
-% feat_funcs.palpha = @(x) bandpower(x, fs, [8 12])';
-% feat_funcs.pbeta = @(x) bandpower(x, fs, [13 30])';
-% feat_funcs.pgamma = @(x) bandpower(x, fs, [30 70])';
-% feat_funcs.phgamma = @(x) bandpower(x, fs, [70 200])';
 
 %cross channel features
 feat_funcs.cc=@cross_corr;
@@ -69,24 +63,4 @@ end
         [~,~,e]=pca(x)';
     end
 
-% per channel
-    function bp=bandpow(Pxx,F)
-        freqBands=[
-            5   15;
-            20  25;
-            75  115;
-            125 160;
-            160 175];
-        bp = get_bandpowers(Pxx, F, freqBands);
-    end
-
-    function pbp=pcbandpow(Pxx,F)
-        freqBands=[
-            5   15;
-            20  25;
-            75  115;
-            125 160;
-            160 175];
-        pbp = get_bandpowers(Pxx, F, freqBands, true);
-    end
 end
