@@ -15,10 +15,12 @@ function R = create_R_matrix(features, N_wind)
     % augment feature matrix by copying the first n-1 rows
     feat_aug = [features(1:N_wind-1,:); features];
     
-    R = zeros(n_windows, 1 + N_wind * n_feats);
-    R(:,1) = ones(n_windows, 1);
+    R = zeros(n_windows, N_wind * n_feats);
+    % Moved the addition of ones column to LRPredictor
+%     R = zeros(n_windows, 1 + N_wind * n_feats);
+%     R(:,1) = ones(n_windows, 1);
     for i = 1:n_feats
-        cols = 1 + (i-1)*N_wind + (1:N_wind);
+        cols = (i-1)*N_wind + (1:N_wind);
         feat_vec = feat_aug(:,i);
         R(:,cols) = makeblock(feat_vec, n_windows, N_wind);
     end

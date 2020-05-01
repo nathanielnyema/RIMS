@@ -1,4 +1,4 @@
-function [features] = get_features(clean_data,fs, channel_features, cross_chan)
+function [features] = get_features(clean_data, fs, channel_features, cross_chan)
     %
     % get_features.m
     %
@@ -16,19 +16,18 @@ function [features] = get_features(clean_data,fs, channel_features, cross_chan)
 %% create structure of function handles for features
 num_ch=size(clean_data,2);
 %channel level features
-feat_funcs.LLFn = @(x) nansum(abs(x(2:end,:)-x(1:end-1,:)),1);
-feat_funcs.mean = @(x) mean(x,1)';
-feat_funcs.kurt= @(x) kurtosis(x)';
+feat_funcs.LLFn = @(x) sum(abs(diff(x)), 1);
+feat_funcs.mean = @(x) mean(x,1);
+feat_funcs.kurt= @(x) kurtosis(x);
 feat_funcs.energy = @(x) sum(x .^ 2,1);
-feat_funcs.went=@went;
-feat_funcs.bandpow=@bandpow;
-feat_funcs.pcbandpow=@pcbandpow;
-feat_funcs.pdelta = @(x) bandpower(x, fs, [1 4])';
-feat_funcs.ptheta = @(x) bandpower(x, fs, [4 8])';
-feat_funcs.palpha = @(x) bandpower(x, fs, [8 12])';
-feat_funcs.pbeta = @(x) bandpower(x, fs, [13 30])';
-feat_funcs.pgamma = @(x) bandpower(x, fs, [30 70])';
-feat_funcs.phgamma = @(x) bandpower(x, fs, [70 200])';
+% feat_funcs.bandpow=@bandpow;
+% feat_funcs.pcbandpow=@pcbandpow;
+% feat_funcs.pdelta = @(x) bandpower(x, fs, [1 4])';
+% feat_funcs.ptheta = @(x) bandpower(x, fs, [4 8])';
+% feat_funcs.palpha = @(x) bandpower(x, fs, [8 12])';
+% feat_funcs.pbeta = @(x) bandpower(x, fs, [13 30])';
+% feat_funcs.pgamma = @(x) bandpower(x, fs, [30 70])';
+% feat_funcs.phgamma = @(x) bandpower(x, fs, [70 200])';
 
 %cross channel features
 feat_funcs.cc=@cross_corr;
@@ -53,7 +52,14 @@ ccfeats=cell2mat(ccfeats);
 features=[chfeats,ccfeats];
 
 %% longer functions
-% cross channel
+function w = went(x,~)
+    % shannon wavelet entropy
+    % x: [time x channel] or [time x channel x window]
+    % output: [1 x channel] or [1 x channel x window]
+    w = x.^2;
+    w = -sum(w .* log(eps+w), 1);
+end
+% cross channel (need to vectorize these)
     function c=cross_corr(x)
         c=corr(x);
         c=c(logical(triu(c)))';
@@ -64,37 +70,23 @@ features=[chfeats,ccfeats];
     end
 
 % per channel
-    function bp=bandpow(x)
-        freqBands=[5 15;
-            20 25;
-            75 115;
+    function bp=bandpow(Pxx,F)
+        freqBands=[
+            5   15;
+            20  25;
+            75  115;
             125 160;
             160 175];
-        bp=zeros(num_ch,length(freqBands));
-        for j=1:length(freqBands)
-            bp(:,j)=bandpower(x,fs,freqBands(j,:))';
-        end
-        
+        bp = get_bandpowers(Pxx, F, freqBands);
     end
 
-    function pbp=pcbandpow(x)
-        freqBands=[5 15;
-            20 25;
-            75 115;
+    function pbp=pcbandpow(Pxx,F)
+        freqBands=[
+            5   15;
+            20  25;
+            75  115;
             125 160;
             160 175];
-        bp=zeros(num_ch,length(freqBands));
-        for j=1:length(freqBands)
-            bp(:,j)=bandpower(x,fs,freqBands(j,:))';
-        end
-        [~,pbp]=pca(bp);
-    end
-        
-
-    function w=went(x)
-        w=zeros(num_ch,1);
-        for j=1:num_ch
-            w(j) = wentropy(x(:,j), 'shannon')';
-        end
+        pbp = get_bandpowers(Pxx, F, freqBands, true);
     end
 end
