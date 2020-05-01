@@ -10,7 +10,6 @@ n_win = 1;
 %% Extract dataglove and ECoG data 
 % Dataglove should be (samples x 5) array 
 % ECoG should be (samples x channels) array
-addpath('part1')
 load raw_training_data train_dg train_ecog
 load leaderboard_data leaderboard_ecog
 
