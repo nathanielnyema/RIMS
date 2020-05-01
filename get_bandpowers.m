@@ -1,15 +1,14 @@
 function features = get_bandpowers(Pxx, F)
-    % get_features2.m
-    %
-    % Description:  Compute bandpowers for all windows in parallel
-    %
-    % Input:    Pxx:    [frequencies x windows x channels]
-    %           F:      vector of frequencies in Pxx
-    %
-    % Output:   features:   [windows x (features*channels)]
+% get_bandpowers.m
+%
+% Description:  Compute bandpowers for all windows in parallel
+%
+% Input:    Pxx:    [frequencies x windows x channels]
+%           F:      vector of frequencies in Pxx
+%
+% Output:   features:   [windows x (features*channels)]
 
 %% Your code here (8 points)
-% delta  = @(Pxx,F) getbandpwr(Pxx, F, [1 5]);
 delta  = [1 5];
 theta  = [5 10];
 alpha  = [10 15];
@@ -22,9 +21,8 @@ n_feats = length(bands);
 n_win = size(Pxx, 2);
 n_ch = size(Pxx, 3);
 
-feat_matrix = zeros(n_win, n_ch, n_feats);
-
 % Compute features
+feat_matrix = zeros(n_win, n_ch, n_feats);
 for i = 1:n_feats
     band = bands(i,:);
     feat_matrix(:,:,i) = getbandpwr(Pxx, F, band);

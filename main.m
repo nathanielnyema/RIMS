@@ -2,8 +2,8 @@
 % Raw data
 fs = 1000; % Hz
 % Feature extraction
-win_len = 0.1; % seconds (was 1)
-win_overlap = 0.02; % seconds (was 0.5)
+win_len = 0.2; % seconds (was 1)
+win_overlap = 0.1; % seconds (was 0.5)
 % R matrix
 n_win = 1;
 
@@ -62,7 +62,7 @@ for i = 1:3
     fprintf(1, 'Subject %d:\n', i);
     linreg{i} = LRPredictor().optimize(R{i}, Ytrain{i});
 end
-% save models.mat linreg -append
+save models.mat linreg -append
 % load models.mat linreg
 
 % Classifier 2: SVM

@@ -1,17 +1,17 @@
 function [all_feats,timestamps]=getWindowedFeats(raw_data, fs, window_length, window_overlap)
-    % getWindowedFeats2.m
-    %
-    % Description:  Same as getWindowedFeats but trying to parallelize the
-    %               whole thing
-    %
-    % Inputs:   raw_data:       The raw data for all patients
-    %           fs:             The raw sampling frequency
-    %           window_length:  The length of window (seconds)
-    %           window_overlap: The overlap in window (seconds)
-    %
-    % Output:   all_feats:      All calculated features
-    %           timestamps:     indices marking the end of each window
-    %
+% getWindowedFeats.m
+%
+% Description:  Same as getWindowedFeats but trying to parallelize the
+%               whole thing
+%
+% Inputs:   raw_data:       The raw data for all patients
+%           fs:             The raw sampling frequency
+%           window_length:  The length of window (seconds)
+%           window_overlap: The overlap in window (seconds)
+%
+% Output:   all_feats:      All calculated features
+%           timestamps:     indices marking the end of each window
+
 % Filter the raw data
 data_filt = filter_data(raw_data, fs);
 
@@ -44,7 +44,7 @@ end
 f1 = get_features(windowed_data, fs);
 
 % Time-frequency features
-f2 = get_bandpowers(Pxx, F);
+f2 = log(get_bandpowers(Pxx, F));
 
 % Combine features
 all_feats = [f1, f2];

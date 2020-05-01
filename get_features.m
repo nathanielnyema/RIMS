@@ -1,13 +1,13 @@
 function features = get_features(clean_data, fs)
-    % get_features2.m
-    %
-    % Description:  Compute features for all windows in parallel
-    %
-    % Input:    clean_data: [samples x windows x channels]
-    %           fs:         sampling frequency
-    %
-    % Output:   features:   [windows x (channels*features)]
-    % 
+% get_features.m
+%
+% Description:  Compute features for all windows in parallel
+%
+% Input:    clean_data: [samples x windows x channels]
+%           fs:         sampling frequency
+%
+% Output:   features:   [windows x (channels*features)]
+% 
 
 %% Your code here (8 points)
 linelength = @(x, fs) sum(abs(diff(x)), 1) / fs;
