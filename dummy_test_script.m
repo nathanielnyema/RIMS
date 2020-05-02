@@ -1,7 +1,7 @@
 clear all;
 close all;
 
-foldername= 'path/to/project/folder';
+foldername= 'RIMS';
 
 addpath(genpath(foldername));
 

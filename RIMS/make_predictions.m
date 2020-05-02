@@ -13,6 +13,7 @@ function [predicted_dg] = make_predictions(test_ecog)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % load model and feature selection params
 fprintf('loading model... \n')
+addpath(genpath('utilities'))
 load('models/selected2.mat','idxs2')
 load('models/final_model.mat','rf512')
 
