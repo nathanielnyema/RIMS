@@ -64,22 +64,27 @@ end
 % for i=1:3
 %     for j=[1 2 3 5]
 %         fprintf('pt %i finger %i \n',i,j)
-%         [idxs2{i}(:,j),scores{i}(:,j)]=fscmrmr(all_feats{i},train_Y{i}(:,j));
+%         [~,scores{i}(:,j)]=fscmrmr(all_feats{i},train_Y{i}(:,j));
 %     end
 % end
 % save('../models/selected2.mat','idxs2')
+% save('../models/scores.mat','idxs2')
 
+load('../models/scores.mat')
 load('../models/selected2.mat')
 %% plot scores to determine how many features to cut
-% count=1;
-% figure
-% for i=1:3
-%     for j=[1 2 3 5]
-%         subplot(3,4,count)
-%         bar(scores{i}(idxs2{i}(:,j),j))
-%         count=count+1;
-%     end
-% end
+count=1;
+figure
+set(gcf,'color','w');
+for i=1:3
+    for j=[1 2 3 5]
+        subplot(3,4,count)
+        bar(scores{i}(idxs2{i}(:,j),j))
+        count=count+1;
+        xlim([0 220])
+        title(sprintf('pt %i; fing %i',i,j))
+    end
+end
 %% create new feature matrices for each finger with selected features
 
 num_feats=200; % based on bar plots above
@@ -101,21 +106,29 @@ end
 
 pt=1;
 fing=2;
-feat=2;
+feat=1;
 wind=40;
 
 figure
-subplot(1,2,1)
-plot(movmean(reduced_alltr{pt,fing}(:,feat),wind))
+set(gcf,'color','w');
+% subplot(1,2,1)
+plot(reduced_alltr{pt,fing}(:,feat))
+hold on
+plot(movmean(reduced_alltr{pt,fing}(:,feat),wind),'LineWidth',2)
+legend('raw','moving mean')
+ylim([0 5e4])
+xlabel('Samples')
+ylabel('Feature Value')
+hold off
 
 % fft of features
-featfs=25;
-l=length(reduced_alltr{pt,fing});
-power=abs(fft(movmean(reduced_alltr{pt,fing}(:,feat),wind)));
-freqs=featfs*(0:l/2)/l;
+% featfs=25;
+% l=length(reduced_alltr{pt,fing});
+% power=abs(fft(movmean(reduced_alltr{pt,fing}(:,feat),wind)));
+% freqs=featfs*(0:l/2)/l;
 
-subplot(1,2,2)
-plot(freqs,power(1:l/2+1))
+% subplot(1,2,2)
+% plot(freqs,power(1:l/2+1))
 
 %% filter feats for regression
 
@@ -299,6 +312,12 @@ for i=1:3
 end
         
 r_512=mean(mean( r_512(:,fings) ))
+%%
+figure
+set(gcf,'color','w');
+plot([64 128 256 384 512],[r_64 r_128 r_256 r_384 r_512])
+xlabel('# Trees')
+ylabel('OOB prediction correlation')
 
 %% make final predictions for leaderboard
 predicted_dg=make_predictions(leaderboard_ecog);
